@@ -7,6 +7,7 @@ from sqlalchemy.sql.sqltypes import JSON, String
 from sqlalchemy.dialects import postgresql
 from sqlalchemy_file import FileField, ImageField, File
 from sqlalchemy_file.storage import StorageManager
+from core.storage import container
 
 url = make_url(settings.DB_DSN.encoded_string())
 
@@ -44,4 +45,4 @@ class Base(AsyncAttrs, MappedAsDataclass, DeclarativeBase, kw_only=True):
     }
 
 
-StorageManager.add_storage("default", settings.container)
+StorageManager.add_storage("default", container)

@@ -11,5 +11,7 @@ match settings.STORAGE_PROVIDER:
         container: Container = driver.get_container("")
     case Provider.GOOGLE_STORAGE:
         driver_cls: type[GoogleStorageDriver] = get_driver(settings.STORAGE_PROVIDER)
-        driver: GoogleStorageDriver = driver_cls(key=settings.STORAGE_KEY.get_secret_value(), secret=settings.STORAGE_SECRET.get_secret_value())
-        container: Container = driver.get_container(settings.STORAGE_BUCKET)
+        driver: GoogleStorageDriver = driver_cls(key=settings.STORAGE_KEY.get_secret_value(), secret=settings.STORAGE_SECRET.get_secret_value()) # ty: ignore[unresolved-attribute]
+        container: Container = driver.get_container(settings.STORAGE_BUCKET) # ty: ignore[unresolved-attribute]
+    case _:
+        NotImplementedError(f"Storage provider {settings.STORAGE_PROVIDER} is not implemented.")

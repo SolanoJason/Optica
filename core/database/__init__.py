@@ -4,8 +4,8 @@ from .dependencies import get_session, SessionDep
 from .mixins import TimeStampMixin
 
 def load_models():
-    import apps.blog.models
     import apps.users.models
+    import apps.optic.models
 
 
 # Register every mapped class whenever the database package is imported. The

@@ -21,7 +21,6 @@ from core.exception_handlers import (
     http_exception_handler,
     validation_exception_handler,
 )
-import apps.blog.routers
 import apps.users.routers
 import time as time_module
 import threading
