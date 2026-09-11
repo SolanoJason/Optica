@@ -1,6 +1,6 @@
-from core.settings import settings, Environment
+from core.settings import settings
 from libcloud.storage.drivers.local import LocalStorageDriver
-from libcloud.storage.base import StorageDriver, Container
+from libcloud.storage.base import Container
 from libcloud.storage.drivers.google_storage import GoogleStorageDriver
 from libcloud.storage.providers import get_driver, Provider
 

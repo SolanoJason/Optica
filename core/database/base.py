@@ -1,6 +1,6 @@
 from core.settings import settings
-from sqlalchemy import create_engine, make_url, MetaData
-from sqlalchemy.orm import sessionmaker, MappedAsDataclass, DeclarativeBase
+from sqlalchemy import make_url, MetaData
+from sqlalchemy.orm import MappedAsDataclass, DeclarativeBase
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncAttrs
 from .types import ImageFile
 from sqlalchemy.sql.sqltypes import JSON, String

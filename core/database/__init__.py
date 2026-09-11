@@ -5,6 +5,7 @@ from .mixins import TimeStampMixin
 
 def load_models():
     import apps.users.models
+    import apps.users.events
     import apps.optic.models
 
 

@@ -1,125 +1,69 @@
-from zoneinfo import ZoneInfo
-from datetime import datetime
-from fastapi import APIRouter, Request, HTTPException, status, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordRequestForm
 from core.database import SessionDep
-from apps.users.models import User
-from apps.users.schemas import UserCreate, UserResponse, UserUpdate
-from apps.blog.models import Post
-from sqlalchemy import select, exists
-from sqlalchemy.orm import selectinload
+from apps.users.models import User, UserSettings
+from apps.users.schemas import TokenResponse, UserCreate, UserResponse
+from apps.users.dependencies import get_current_user
+from core.auth import create_access_token
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from typing import Annotated
-from pydantic import BaseModel
-from apps.blog.schemas import PostCreate, PostResponse
 
 router = APIRouter()
 
+CurrentUser = Annotated[User, Depends(get_current_user)]
 
-@router.post("/users", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
-async def create_user(user_data: UserCreate, session: SessionDep):
-    """
-    Create a new user.
-    """
-    stmt = select(
-        exists(
-            select(1).where(
-                (User.email == user_data.email) | (User.username == user_data.username)
-            )
+
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def register_user(user_data: UserCreate, session: SessionDep) -> User:
+    existing_user = await session.scalar(
+        select(User).where(
+            (User.username == user_data.username) | (User.email == user_data.email)
         )
     )
-    existing_user = await session.scalar(stmt)
-    if existing_user:
+    if existing_user is not None:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A user with this email or username already exists.",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username or email is already registered",
         )
-    new_user = User(**user_data.model_dump())
-    session.add(new_user)
-    await session.commit()
-    return new_user
 
-
-@router.get("/users/{user_id}", response_model=UserResponse)
-async def get_user(user_id: int, session: SessionDep):
-    """
-    Get a user by ID.
-    """
-    user = await session.get(User, user_id)
-    if not user:
+    user = User(
+        username=user_data.username,
+        email=user_data.email,
+        password=user_data.password,
+        repeat_password=user_data.repeat_password,
+        settings=UserSettings(),
+    )
+    session.add(user)
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found.",
-        )
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username or email is already registered",
+        ) from None
+
+    await session.refresh(user)
     return user
 
 
-@router.get("/users/{user_id}/posts", response_model=list[PostResponse])
-async def get_user_posts(user_id: int, session: SessionDep):
-    """
-    Get posts for a user by user ID.
-    """
-    user = await session.get(User, user_id, options=[selectinload(User.posts)])
-    if not user:
+@router.post("/token", response_model=TokenResponse)
+async def login(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    session: SessionDep,
+) -> TokenResponse:
+    user = await session.scalar(select(User).where(User.username == form_data.username))
+    if user is None or not user.verify_password(form_data.password):
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found.",
-        )
-    return user.posts
-
-
-@router.post("/users/{user_id}/posts", response_model=PostResponse)
-async def create_user_post(user_id: int, post_data: PostCreate, session: SessionDep):
-    """
-    Create a new post for a user.
-    """
-    user = await session.get(User, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found.",
-        )
-    new_post = Post(
-        **post_data.model_dump(),
-        user=user,
-    )
-    session.add(new_post)
-    await session.commit()
-    return new_post
-
-
-@router.patch("/users/{user_id}", response_model=UserResponse)
-async def partially_update_user(
-    user_id: int, user_data: Annotated[UserUpdate, File()], session: SessionDep
-):
-    """
-    Partially update a user's information.
-    """
-    user = await session.get(User, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found.",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Update only the fields provided in the request
-    for field, value in user_data.model_dump(
-        exclude_unset=True, exclude_none=True
-    ).items():
-        setattr(user, field, value)
-
-    await session.commit()
-    return user
+    return TokenResponse(access_token=create_access_token({"sub": str(user.id)}))
 
 
-@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(user_id: int, session: SessionDep):
-    """
-    Delete a user by ID.
-    """
-    user = await session.get(User, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found.",
-        )
-    await session.delete(user)
-    await session.commit()
+@router.get("/me", response_model=UserResponse)
+async def get_me(current_user: CurrentUser) -> User:
+    return current_user

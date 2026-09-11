@@ -1,6 +1,4 @@
-import hashlib
 from pwdlib import PasswordHash
-import jwt
 from fastapi.security import OAuth2PasswordBearer
 
 password_hasher = PasswordHash.recommended()

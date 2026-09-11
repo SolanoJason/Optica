@@ -5,7 +5,6 @@ from sqlalchemy_file import File
 from pydantic_core import core_schema, CoreSchema
 from pydantic.json_schema import JsonSchemaValue
 from pydantic import GetCoreSchemaHandler, GetJsonSchemaHandler
-from core.settings import settings
 
 intpk = Annotated[int, mapped_column(Identity(True), primary_key=True)]
 

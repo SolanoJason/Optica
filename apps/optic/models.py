@@ -3,7 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, CheckConstraint
 from decimal import Decimal
 from sqlalchemy.sql.sqltypes import Numeric, DateTime
-from datetime import datetime, UTC
+from datetime import datetime
 from sqlalchemy.dialects.postgresql import CITEXT
 
 
@@ -37,17 +37,17 @@ class Prescription(TimeStampMixin, Base):
 
     id: Mapped[intpk] = mapped_column(init=False)
 
-    sphere_od: Mapped[Decimal | None] = mapped_column(Numeric(4, 2))
-    sphere_os: Mapped[Decimal | None] = mapped_column(Numeric(4, 2))
-    cylinder_od: Mapped[Decimal | None] = mapped_column(Numeric(4, 2))
-    cylinder_os: Mapped[Decimal | None] = mapped_column(Numeric(4, 2))
-    axis_od: Mapped[int | None]
-    axis_os: Mapped[int | None]
-    pd_od: Mapped[Decimal | None] = mapped_column(Numeric(4, 2))
-    pd_os: Mapped[Decimal | None] = mapped_column(Numeric(4, 2))
-    add_od: Mapped[Decimal | None] = mapped_column(Numeric(4, 2))
-    add_os: Mapped[Decimal | None] = mapped_column(Numeric(4, 2))
     prescribed_at: Mapped[datetime] = mapped_column(DateTime(True))
+    sphere_od: Mapped[Decimal | None] = mapped_column(Numeric(4, 2), default=None)
+    sphere_os: Mapped[Decimal | None] = mapped_column(Numeric(4, 2), default=None)
+    cylinder_od: Mapped[Decimal | None] = mapped_column(Numeric(4, 2), default=None)
+    cylinder_os: Mapped[Decimal | None] = mapped_column(Numeric(4, 2), default=None)
+    axis_od: Mapped[int | None] = mapped_column(default=None)
+    axis_os: Mapped[int | None] = mapped_column(default=None)
+    pd_od: Mapped[Decimal | None] = mapped_column(Numeric(4, 2), default=None)
+    pd_os: Mapped[Decimal | None] = mapped_column(Numeric(4, 2), default=None)
+    add_od: Mapped[Decimal | None] = mapped_column(Numeric(4, 2), default=None)
+    add_os: Mapped[Decimal | None] = mapped_column(Numeric(4, 2), default=None)
 
     image: Mapped[ImageFile | None] = mapped_column(default=None, repr=False)
     notes: Mapped[str | None] = mapped_column(default=None, repr=False)

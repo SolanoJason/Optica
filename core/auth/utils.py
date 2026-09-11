@@ -1,4 +1,3 @@
-from .base import password_hasher, oauth2_scheme
 import jwt
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -31,4 +30,5 @@ def verify_access_token(token: str) -> str | None:
     except jwt.InvalidTokenError:
         return None
     else:
-        return payload.get("sub")
+        subject = payload.get("sub")
+        return subject if isinstance(subject, str) else None

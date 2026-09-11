@@ -3,23 +3,17 @@ from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from functools import cached_property
 from pydantic import (
-    BaseModel,
     PostgresDsn,
     SecretStr,
     PositiveInt,
-    ConfigDict,
     Field,
-    computed_field,
     BeforeValidator,
-    AfterValidator,
     NonNegativeInt
 )
-from typing import Literal, Annotated, ClassVar, get_type_hints, get_origin
+from typing import Annotated, ClassVar, get_origin
 from urllib.parse import urlencode
 from sqlalchemy.engine.interfaces import IsolationLevel
-from libcloud.storage.base import StorageDriver
 from libcloud.storage.providers import Provider
-from libcloud.storage.drivers.local import LocalStorageDriver
 from .utils import Environment, SSLMode
 
 
@@ -60,15 +54,9 @@ class Settings(BaseSettings):
 
     STORAGE_PROVIDER: ClassVar[Provider]
 
-    TEMPLATES_DIR: ClassVar[Path] = BASE_DIR / "templates"
-
     SECRET_KEY: SecretStr = SecretStr("YOUR_SECRET_KEY")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: PositiveInt = 30
-
-    @cached_property
-    def templates(self) -> Jinja2Templates:
-        return Jinja2Templates(directory=self.TEMPLATES_DIR)
 
     @cached_property
     def DB_DSN(self) -> PostgresDsn:

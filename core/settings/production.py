@@ -1,14 +1,10 @@
-from libcloud.storage.drivers.google_storage import GoogleStorageDriver
-from libcloud.storage.base import Container, StorageDriver
-from libcloud.common.google import GoogleAuthType
 from libcloud.storage.providers import Provider
-from pydantic import Field, SecretStr, field_validator
-from functools import cached_property
+from pydantic import SecretStr
 from .base import Settings
-from .utils import SSLMode, Environment
+from .utils import SSLMode
 
 class ProductionSettings(Settings):
-    DB__QUERY__SSLMODE = SSLMode.REQUIRE
+    DB__QUERY__SSLMODE = SSLMode.PREFER
     STORAGE_PROVIDER = Provider.GOOGLE_STORAGE
 
     STORAGE_KEY: SecretStr
